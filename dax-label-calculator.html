@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Калькулятор стоимости внедрения — Дакс-Сериализация</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --black: #000000;
+      --gray-dark: #333333;
+      --gray-mid: #666666;
+      --gray-light: #e5e5e5;
+      --gray-bg: #f0f0f0;
+      --accent: #dc5800;
+      --accent-dark: #b84700;
+      --accent-light: #ff6a1a;
+      --white: #ffffff;
+      --text: #1a1a1a;
+      --radius: 4px;
+    }
+
+    body {
+      font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      color: var(--text);
+      line-height: 1.5;
+      min-height: 100vh;
+      background:
+        linear-gradient(160deg, #ececec 0%, #f5f5f5 35%, #ebebeb 100%);
+      background-attachment: fixed;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background:
+        radial-gradient(ellipse 70% 50% at 100% 0%, rgba(220, 88, 0, 0.09) 0%, transparent 55%),
+        radial-gradient(ellipse 60% 40% at 0% 100%, rgba(220, 88, 0, 0.06) 0%, transparent 50%),
+        linear-gradient(180deg, transparent 0%, rgba(51, 51, 51, 0.03) 100%);
+    }
+
+    .page-wrap { position: relative; z-index: 1; }
+
+    /* Header */
+    .header {
+      background: var(--black);
+      padding: 14px 24px;
+      border-bottom: 3px solid var(--accent);
+    }
+
+    .header-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .logo-img {
+      height: 44px;
+      width: auto;
+      display: block;
+    }
+
+    .tagline {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 0.8125rem;
+      font-weight: 500;
+      max-width: 320px;
+      text-align: right;
+      line-height: 1.4;
+    }
+
+    /* Hero */
+    .hero {
+      background: linear-gradient(135deg, #1a1a1a 0%, var(--gray-dark) 50%, #2c2c2c 100%);
+      padding: 40px 24px 52px;
+      border-bottom: 1px solid rgba(220, 88, 0, 0.3);
+      position: relative;
+    }
+
+    .hero::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--black), var(--accent) 30%, var(--accent-light) 70%, var(--black));
+    }
+
+    .hero-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .hero-badge {
+      display: inline-block;
+      background: rgba(220, 88, 0, 0.12);
+      border-left: 3px solid var(--accent);
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 0.8125rem;
+      font-weight: 600;
+      padding: 8px 14px;
+      margin-bottom: 18px;
+      max-width: 100%;
+    }
+
+    .hero h1 {
+      color: var(--white);
+      font-size: clamp(1.5rem, 3.5vw, 2.125rem);
+      font-weight: 700;
+      line-height: 1.25;
+      margin-bottom: 12px;
+      max-width: 720px;
+    }
+
+    .hero p {
+      color: rgba(255, 255, 255, 0.75);
+      font-size: 0.9375rem;
+      max-width: 560px;
+    }
+
+    /* Layout */
+    .main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 32px 24px 48px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    @media (max-width: 820px) {
+      .main { grid-template-columns: 1fr; }
+      .tagline { text-align: left; }
+    }
+
+    @media (max-width: 360px) {
+      .main, .header, .hero { padding-left: 16px; padding-right: 16px; }
+    }
+
+    /* Cards */
+    .card {
+      background: var(--white);
+      border: 1px solid var(--gray-light);
+      border-radius: var(--radius);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+    }
+
+    .card-head {
+      padding: 18px 22px;
+      border-bottom: 1px solid var(--gray-light);
+      background: linear-gradient(180deg, #fafafa 0%, #fff 100%);
+    }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .card-subtitle {
+      font-size: 0.8125rem;
+      color: var(--gray-mid);
+      margin-top: 2px;
+    }
+
+    .card-body { padding: 22px; }
+
+    .card--summary { position: sticky; top: 20px; }
+
+    /* Sections */
+    .section {
+      border: 1px solid var(--gray-light);
+      border-radius: var(--radius);
+      padding: 18px;
+      margin-bottom: 16px;
+      background: #fafafa;
+    }
+
+    .section:last-child { margin-bottom: 0; }
+
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--gray-light);
+    }
+
+    .section-title {
+      font-size: 0.8125rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--gray-mid);
+    }
+
+    .price-tag {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--accent);
+      background: #fff;
+      border: 1px solid rgba(220, 88, 0, 0.35);
+      padding: 3px 8px;
+      border-radius: var(--radius);
+      white-space: nowrap;
+    }
+
+    .field { margin-bottom: 14px; }
+    .field:last-child { margin-bottom: 0; }
+
+    .field-label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .field-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    /* Box price */
+    .box-price {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      padding: 12px 14px;
+      background: #fff;
+      border: 1px solid var(--gray-light);
+      border-left: 3px solid var(--accent);
+      border-radius: var(--radius);
+    }
+
+    .box-price-value {
+      font-size: 1.375rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .box-price-note {
+      font-size: 0.75rem;
+      color: var(--gray-mid);
+      margin-top: 4px;
+    }
+
+    /* Stepper */
+    .stepper {
+      display: flex;
+      align-items: stretch;
+      border: 1px solid var(--gray-light);
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .stepper-btn {
+      width: 44px;
+      border: none;
+      background: #f5f5f5;
+      color: var(--text);
+      font-size: 1.25rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.12s, color 0.12s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .stepper-btn:hover:not(:disabled) {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .stepper-btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    .stepper-value {
+      min-width: 52px;
+      text-align: center;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--accent);
+      padding: 0 10px;
+      border-left: 1px solid var(--gray-light);
+      border-right: 1px solid var(--gray-light);
+      line-height: 44px;
+    }
+
+    /* Segmented */
+    .segmented {
+      display: flex;
+      border: 1px solid var(--gray-light);
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .segmented--wrap { flex-wrap: wrap; }
+
+    .segmented-item { flex: 1; position: relative; min-width: 0; }
+
+    .segmented-item input {
+      position: absolute;
+      opacity: 0;
+      width: 0; height: 0;
+    }
+
+    .segmented-item label {
+      display: block;
+      padding: 10px 12px;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      text-align: center;
+      cursor: pointer;
+      color: var(--gray-mid);
+      border-right: 1px solid var(--gray-light);
+      transition: background 0.12s, color 0.12s;
+    }
+
+    .segmented-item:last-child label { border-right: none; }
+
+    .segmented-item label:hover { background: #f9f9f9; color: var(--text); }
+
+    .segmented-item input:checked + label {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    /* Summary */
+    .summary-list { list-style: none; }
+
+    .summary-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--gray-light);
+    }
+
+    .summary-item.is-zero { opacity: 0.5; }
+
+    .summary-label {
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+
+    .summary-calc {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--gray-mid);
+      margin-top: 2px;
+    }
+
+    .summary-value {
+      font-size: 0.9375rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .summary-totals {
+      margin-top: 4px;
+      padding-top: 12px;
+      border-top: 2px solid var(--gray-dark);
+    }
+
+    .summary-totals .summary-item { border-bottom: none; padding: 8px 0; }
+    .summary-vat.hidden { display: none; }
+
+    .total-block {
+      margin-top: 16px;
+      background: var(--black);
+      border-left: 4px solid var(--accent);
+      padding: 20px 22px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .total-label {
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 0.9375rem;
+      font-weight: 600;
+    }
+
+    .total-value {
+      color: var(--accent-light);
+      font-size: clamp(1.375rem, 3.5vw, 1.875rem);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 24px;
+      color: var(--gray-mid);
+      font-size: 0.8125rem;
+      border-top: 1px solid var(--gray-light);
+      background: rgba(255, 255, 255, 0.6);
+    }
+
+    .footer a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="page-wrap">
+
+    <header class="header">
+      <div class="header-inner">
+        <img class="logo-img" src="assets/dax-logo.png" alt="DAX Group" />
+        <p class="tagline">Делаем сложные бизнес-процессы простыми в управлении</p>
+      </div>
+    </header>
+
+    <section class="hero">
+      <div class="hero-inner">
+        <div class="hero-badge">Калькулятор стоимости внедрения продукта Дакс-Сериализация</div>
+        <h1>Рассчитайте стоимость внедрения</h1>
+        <p>Укажите количество постов маркировки и ставку НДС — смета обновится автоматически.</p>
+      </div>
+    </section>
+
+    <main class="main">
+
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">Параметры проекта</div>
+          <div class="card-subtitle">Заполните данные для расчёта</div>
+        </div>
+        <div class="card-body">
+
+          <div class="section">
+            <div class="section-head">
+              <span class="section-title">Коробочное решение</span>
+              <span class="price-tag">фиксированная цена</span>
+            </div>
+            <div class="box-price">
+              <div>
+                <div class="box-price-value">538 000 ₽</div>
+                <div class="box-price-note">Стоимость ядра системы, не изменяется</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="section-head">
+              <span class="section-title">Посты маркировки</span>
+              <span class="price-tag" id="markingPriceBadge">25 000 ₽ / пост</span>
+            </div>
+
+            <div class="field">
+              <span class="field-label">Тип поста</span>
+              <div class="segmented">
+                <div class="segmented-item">
+                  <input type="radio" name="markingType" id="markingManual" value="manual" checked />
+                  <label for="markingManual">Ручной — 25 000 ₽</label>
+                </div>
+                <div class="segmented-item">
+                  <input type="radio" name="markingType" id="markingAuto" value="auto" />
+                  <label for="markingAuto">Автоматический — 50 000 ₽</label>
+                </div>
+              </div>
+            </div>
+
+            <div class="field">
+              <div class="field-row">
+                <span class="field-label" style="margin-bottom:0">Количество постов</span>
+                <div class="stepper">
+                  <button type="button" class="stepper-btn" id="markingMinus" aria-label="Уменьшить">−</button>
+                  <span class="stepper-value" id="markingCount" aria-live="polite">0</span>
+                  <button type="button" class="stepper-btn" id="markingPlus" aria-label="Увеличить">+</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="section-head">
+              <span class="section-title">Налогообложение</span>
+            </div>
+            <div class="field">
+              <span class="field-label">Ставка НДС</span>
+              <div class="segmented segmented--wrap">
+                <div class="segmented-item">
+                  <input type="radio" name="vatRate" id="vat20" value="0.20" checked />
+                  <label for="vat20">20%</label>
+                </div>
+                <div class="segmented-item">
+                  <input type="radio" name="vatRate" id="vat10" value="0.10" />
+                  <label for="vat10">10%</label>
+                </div>
+                <div class="segmented-item">
+                  <input type="radio" name="vatRate" id="vat5" value="0.05" />
+                  <label for="vat5">5%</label>
+                </div>
+                <div class="segmented-item">
+                  <input type="radio" name="vatRate" id="vat0" value="0" />
+                  <label for="vat0">Без НДС</label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="card card--summary">
+        <div class="card-head">
+          <div class="card-title">Смета</div>
+          <div class="card-subtitle">Детализация расчёта</div>
+        </div>
+        <div class="card-body">
+
+          <ul class="summary-list">
+            <li class="summary-item">
+              <span class="summary-label">Коробочное решение</span>
+              <span class="summary-value" id="outBox">538 000 ₽</span>
+            </li>
+            <li class="summary-item is-zero" id="rowMarking">
+              <div>
+                <span class="summary-label">Посты маркировки</span>
+                <span class="summary-calc" id="outMarkingCalc">0 × 25 000 ₽</span>
+              </div>
+              <span class="summary-value" id="outMarking">0 ₽</span>
+            </li>
+          </ul>
+
+          <div class="summary-totals">
+            <div class="summary-item">
+              <span class="summary-label">Сумма без НДС</span>
+              <span class="summary-value" id="outSubtotal">538 000 ₽</span>
+            </div>
+            <div class="summary-item summary-vat" id="vatRow">
+              <span class="summary-label" id="outVatLabel">НДС (20%)</span>
+              <span class="summary-value" id="outVat">107 600 ₽</span>
+            </div>
+          </div>
+
+          <div class="total-block">
+            <span class="total-label" id="outTotalLabel">Итого с НДС</span>
+            <span class="total-value" id="outTotal">645 600 ₽</span>
+          </div>
+
+        </div>
+      </div>
+
+    </main>
+
+    <footer class="footer">
+      © Дакс-Групп · <a href="https://daxgroup.ru" target="_blank" rel="noopener">daxgroup.ru</a>
+    </footer>
+
+  </div>
+
+  <script>
+    (function () {
+      var BOX_PRICE = 538000;
+      var POST_PRICES = { manual: 25000, auto: 50000 };
+      var markingCount = 0;
+
+      var els = {
+        markingMinus: document.getElementById('markingMinus'),
+        markingPlus: document.getElementById('markingPlus'),
+        markingCountEl: document.getElementById('markingCount'),
+        markingPriceBadge: document.getElementById('markingPriceBadge'),
+        rowMarking: document.getElementById('rowMarking'),
+        outBox: document.getElementById('outBox'),
+        outMarking: document.getElementById('outMarking'),
+        outMarkingCalc: document.getElementById('outMarkingCalc'),
+        outSubtotal: document.getElementById('outSubtotal'),
+        outVat: document.getElementById('outVat'),
+        outVatLabel: document.getElementById('outVatLabel'),
+        vatRow: document.getElementById('vatRow'),
+        outTotal: document.getElementById('outTotal'),
+        outTotalLabel: document.getElementById('outTotalLabel'),
+      };
+
+      function formatMoney(value) {
+        return value.toLocaleString('ru-RU') + ' \u20BD';
+      }
+
+      function getMarkingType() {
+        var checked = document.querySelector('input[name="markingType"]:checked');
+        return checked ? checked.value : 'manual';
+      }
+
+      function getUnitPrice() {
+        return POST_PRICES[getMarkingType()];
+      }
+
+      function getVatRate() {
+        var checked = document.querySelector('input[name="vatRate"]:checked');
+        return checked ? parseFloat(checked.value) : 0.20;
+      }
+
+      function getVatLabel() {
+        var checked = document.querySelector('input[name="vatRate"]:checked');
+        if (!checked || checked.id === 'vat0') return '0%';
+        return Math.round(parseFloat(checked.value) * 100) + '%';
+      }
+
+      function calculate() {
+        var unit = getUnitPrice();
+        var vatRate = getVatRate();
+        var markingTotal = markingCount * unit;
+        var subtotal = BOX_PRICE + markingTotal;
+        var vat = subtotal * vatRate;
+        var total = subtotal + vat;
+
+        els.outBox.textContent = formatMoney(BOX_PRICE);
+        els.outMarkingCalc.textContent = markingCount + ' \u00D7 ' + formatMoney(unit);
+        els.outMarking.textContent = formatMoney(markingTotal);
+        els.outSubtotal.textContent = formatMoney(subtotal);
+        els.markingPriceBadge.textContent = formatMoney(unit) + ' / пост';
+        els.rowMarking.classList.toggle('is-zero', markingTotal === 0);
+
+        if (vatRate === 0) {
+          els.vatRow.classList.add('hidden');
+        } else {
+          els.vatRow.classList.remove('hidden');
+          els.outVatLabel.textContent = 'НДС (' + getVatLabel() + ')';
+          els.outVat.textContent = formatMoney(vat);
+        }
+
+        els.outTotalLabel.textContent = vatRate === 0 ? 'Итого' : 'Итого с НДС';
+        els.outTotal.textContent = formatMoney(total);
+      }
+
+      els.markingMinus.addEventListener('click', function () {
+        if (markingCount > 0) {
+          markingCount--;
+          els.markingCountEl.textContent = markingCount;
+          els.markingMinus.disabled = markingCount <= 0;
+          calculate();
+        }
+      });
+
+      els.markingPlus.addEventListener('click', function () {
+        markingCount++;
+        els.markingCountEl.textContent = markingCount;
+        els.markingMinus.disabled = false;
+        calculate();
+      });
+
+      document.querySelectorAll('input[name="markingType"], input[name="vatRate"]').forEach(function (r) {
+        r.addEventListener('change', calculate);
+      });
+
+      els.markingMinus.disabled = true;
+      calculate();
+    })();
+  </script>
+</body>
+</html>
