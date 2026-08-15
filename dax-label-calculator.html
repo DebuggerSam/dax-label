@@ -340,6 +340,7 @@
     .segmented-item:last-child label { border-right: none; }
 
     .segmented-item label:hover { background: #f9f9f9; color: var(--text); }
+    .segmented-item input:checked + label:hover { background: var(--accent); color: #fff; }
 
     .segmented-item input:checked + label {
       background: var(--accent);
@@ -787,7 +788,7 @@
           </div>
 
           <div class="proposal-action hidden" id="proposalAction">
-            <button type="button" class="btn btn-primary btn-block" id="downloadProposal">Скачать предложение</button>
+            <button type="button" class="btn btn-primary btn-block" id="downloadProposal">Получить КП</button>
           </div>
 
         </div>
@@ -805,12 +806,12 @@
     <div class="modal-backdrop"></div>
     <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
       <div class="modal-header">
-        <h3 id="modalTitle">Скачать предложение</h3>
+        <h3 id="modalTitle">Получить коммерческое предложение</h3>
         <button type="button" class="modal-close" id="modalClose" aria-label="Закрыть">×</button>
       </div>
       <div class="modal-body">
         <p>Введите номер телефона и наименование компании, которые будут выводиться в КП.</p>
-        <p class="modal-error" id="modalError" role="alert">Введите наименование компании и полный номер телефона, чтобы сформировать КП.</p>
+        <p class="modal-error" id="modalError" role="alert">Введите наименование компании и полный номер телефона, чтобы получить КП.</p>
         <div class="field">
           <label class="field-label" for="companyName">Наименование компании</label>
           <input type="text" id="companyName" class="modal-input" placeholder="ООО «Пример»" autocomplete="organization" />
@@ -822,7 +823,7 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" id="modalCancel">Отмена</button>
-        <button type="button" class="btn btn-primary" id="modalSubmit">Скачать HTML</button>
+        <button type="button" class="btn btn-primary" id="modalSubmit">Получить КП</button>
       </div>
     </div>
   </div>
